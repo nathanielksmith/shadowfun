@@ -37,12 +37,13 @@ impl Character {
         Character {
             name: name,
             race: race,
-            body: 1,
-            intelligence: 2,
-            strength: 3,
-            charisma: 4,
-            willpower: 5,
-            quickness: 6,
+            body: 0,
+            intelligence: 0,
+            strength: 0,
+            charisma: 0,
+            willpower: 0,
+            quickness: 0,
+
             phys_level: 0,
             stun_level: 0,
         }
@@ -89,4 +90,21 @@ impl Character {
         let tn = self.injury_to_mod() + tn;
         return dice::roll(die, tn);
     }
+}
+
+// tests
+
+#[test]
+fn test_reaction() {
+    let mut j = Character::new("juli", Race::Human);
+    j.quickness = 3;
+    j.intelligence = 1;
+    assert_eq!(j.reaction(), 2);
+    j.intelligence = 4;
+    assert_eq!(j.reaction(), 3)
+}
+
+#[test]
+fn test_condition() {
+   // TODO 
 }
