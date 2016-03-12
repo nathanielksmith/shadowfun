@@ -1,6 +1,9 @@
 extern crate rand;
 use self::rand::Rng;
 
+// TODO probably will only ever want this for dev, so use const
+const VERBOSE_ROLL: bool = true;
+
 #[derive(Debug)]
 pub struct RollResult {
     success: bool,
@@ -22,9 +25,15 @@ pub fn nd6(rolls: i32) -> i32 {
 }
 
 fn explode() -> i32 {
+    if VERBOSE_ROLL {
+        println!("explosion!");
+    }
     let mut next_roll = d6();
     let mut result = 6 + next_roll;
     while next_roll == 6 {
+        if VERBOSE_ROLL {
+            println!("explosion!");
+        }
         next_roll = d6();
         result += next_roll;
     }
@@ -32,6 +41,9 @@ fn explode() -> i32 {
 }
 
 pub fn roll(rolls: i32, target: i32) -> RollResult {
+    if VERBOSE_ROLL {
+        println!("Rolling {}d6 with target number {}", rolls, target);
+    }
     let mut successes = 0;
     let mut ones = 0;
     for _ in 0..rolls {
