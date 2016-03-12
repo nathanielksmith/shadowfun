@@ -1,0 +1,7 @@
+[package]
+name = "shadowfun"
+version = "0.1.0"
+authors = ["nathaniel smith <nathanielksmith@gmail.com>"]
+
+[dependencies]
+rand = "0.3"
