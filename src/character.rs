@@ -33,7 +33,6 @@ pub enum Damage {
 
 impl Character {
     pub fn new(name: &'static str, race: Race) -> Character {
-        // TODO this is obviously just for testing.
         Character {
             name: name,
             race: race,
@@ -57,8 +56,8 @@ impl Character {
         match kind {
             Damage::Stun => {
                 if self.stun_level + amount >= 10 {
-                    self.stun_level = 10;
                     self.phys_level += amount - (10 - self.stun_level);
+                    self.stun_level = 10;
                     println!("WARNING: {} has fallen unconscious.", self.name);
                 } else {
                     self.stun_level += amount;
@@ -96,15 +95,37 @@ impl Character {
 
 #[test]
 fn test_reaction() {
-    let mut j = Character::new("juli", Race::Human);
-    j.quickness = 3;
-    j.intelligence = 1;
-    assert_eq!(j.reaction(), 2);
-    j.intelligence = 4;
-    assert_eq!(j.reaction(), 3)
+    let mut c = Character::new("juli", Race::Human);
+    c.quickness = 3;
+    c.intelligence = 1;
+    assert_eq!(c.reaction(), 2);
+    c.intelligence = 4;
+    assert_eq!(c.reaction(), 3)
 }
 
 #[test]
 fn test_condition() {
-   // TODO 
+    let mut c = Character::new("hernando", Race::Elf);
+    assert_eq!(c.phys_level, 0);
+    assert_eq!(c.stun_level, 0);
+    c.injure(Damage::Stun, 1);
+    assert_eq!(c.phys_level, 0);
+    assert_eq!(c.stun_level, 1);
+    c.injure(Damage::Physical, 1);
+    assert_eq!(c.phys_level, 1);
+    assert_eq!(c.stun_level, 1);
+    c.injure(Damage::Stun, 11);
+    assert_eq!(c.phys_level, 3);
+    assert_eq!(c.stun_level, 10);
+}
+
+#[test]
+fn test_injury_mod() {
+    let mut c = Character::new("francine", Race::Dwarf);
+    c.injure(Damage::Stun, 1);
+    assert_eq!(c.injury_to_mod(), 1);
+    c.injure(Damage::Physical, 3);
+    assert_eq!(c.injury_to_mod(), 2);
+    c.injure(Damage::Stun, 6);
+    assert_eq!(c.injury_to_mod(), 3);
 }
