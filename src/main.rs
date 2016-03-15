@@ -1,8 +1,12 @@
 mod dice;
 mod character;
+mod common;
+mod magic;
 
+use common::{Attribute, DamageLevel};
 use character::{Character, Race};
 use character::Damage::{Physical, Stun};
+use magic::{Spell, SpellType, Duration};
 
 fn main() {
     println!("/ / / S H A D O W  F U N \\ \\ \\");
@@ -23,4 +27,18 @@ fn main() {
     println!("char roll: {:?}", froz.roll(4, 4));
     println!("char killed: {:?}", froz.injure(Physical, 7));
     println!("char roll: {:?}", froz.roll(4, 4));
+
+    println!("\n~~ * ~ * ~ * spell stuff * ~ * ~ * ~~");
+
+    let mut jill = Character::new("jill", Race::Ork);
+    let manabolt = Spell {
+        name: "mana bolt",
+        force: 3,
+        spell_type: SpellType::Mana,
+        target: Attribute::Willpower,
+        duration: Duration::Instant,
+        // TODO support modifiers on the chosen level
+        drain_level: DamageLevel::Variable,
+        drain_modifier: 0,
+    };
 }
