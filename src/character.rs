@@ -1,6 +1,8 @@
 use std::cmp::max;
 use dice;
 use dice::RollResult;
+use common::{Attribute, HasAttributes, SpellTarget};
+use magic::{Spell, SpellResult};
 
 #[derive(Debug)]
 pub enum Race {
@@ -21,6 +23,8 @@ pub struct Character {
     charisma: i32,
     willpower: i32,
     quickness: i32,
+    // TODO essence
+    magic: i32,
 
     stun_level: i32,
     phys_level: i32,
@@ -42,6 +46,7 @@ impl Character {
             charisma: 0,
             willpower: 0,
             quickness: 0,
+            magic: 6,
 
             phys_level: 0,
             stun_level: 0,
@@ -89,6 +94,64 @@ impl Character {
         let tn = self.injury_to_mod() + tn;
         return dice::roll(die, tn);
     }
+
+    //fn spell_test<T: HasAttributes, S: SpellTarget<T>>
+    //    (&self, spell: Spell<T, S>)
+    //     -> RollResult
+    //{
+    //    // TODO basic fizzle test
+    //    RollResult {
+    //        success: false,
+    //        catastrophic_fail: false,
+    //        successes: 0,
+    //    }
+    //}
+
+    //fn drain_test<T: HasAttributes, S: SpellTarget<T>>
+    //    (&self, spell: Spell<T,S>) -> RollResult
+    //{
+    //    // TODO calucate drain, apply damage
+    //    RollResult {
+    //        success: false,
+    //        catastrophic_fail: false,
+    //        successes: 0,
+    //    }
+    //}
+
+    //pub fn cast_at<T: HasAttributes, S: SpellTarget<T>>
+    //    (&self, spell: Spell<T, S>, target: Character) -> SpellResult
+    //{
+    //    // TODO Fizzle test
+    //    // TODO Resistance test
+    //    // TODO Drain test
+    //    SpellResult {
+    //        success: false,
+    //    }
+    //}
+
+    //pub fn cast<T: HasAttributes, S: SpellTarget<T>>
+    //    (&self, spell: Spell<T, S>) -> SpellResult
+    //{
+    //    // TODO Fizzle test
+    //    // TODO Drain test
+    //    SpellResult {
+    //        success: false,
+    //    }
+    //}
+}
+
+impl HasAttributes for Character {
+    pub fn attr(&self, attribute:Attribute) -> i32 {
+        match attribute {
+            Willpower => self.willpower,
+            Intelligence => self.intelligence,
+            Body => self.body,
+            Quickness => self.quickness,
+            Strength => self.strength,
+            Charisma => self.charisma,
+        }
+    }
+
 }
 
 // tests

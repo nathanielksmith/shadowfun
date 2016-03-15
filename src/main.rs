@@ -31,14 +31,14 @@ fn main() {
     println!("\n~~ * ~ * ~ * spell stuff * ~ * ~ * ~~");
 
     let mut jill = Character::new("jill", Race::Ork);
-    let manabolt = Spell {
-        name: "mana bolt",
-        force: 3,
-        spell_type: SpellType::Mana,
-        target: Attribute::Willpower,
-        duration: Duration::Instant,
-        // TODO support modifiers on the chosen level
-        drain_level: DamageLevel::Variable,
-        drain_modifier: 0,
-    };
+    //let manabolt = Spell::<Character> {
+    //    name: "mana bolt",
+    //    force: 3,
+    //    spell_type: SpellType::Mana,
+    //    target: Attribute::Willpower,
+    //    duration: Duration::Instant,
+    //    // TODO support modifiers on the chosen level
+    //    drain_level: DamageLevel::Variable,
+    //    drain_modifier: 0,
+    //};
 }

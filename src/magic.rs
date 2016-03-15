@@ -1,4 +1,4 @@
-use common::{Attribute, DamageLevel};
+use common::{Attribute, DamageLevel, SpellTarget, HasAttributes};
 
 #[derive(Debug)]
 pub enum SpellType {
@@ -14,14 +14,19 @@ pub enum Duration {
 }
 
 #[derive(Debug)]
-pub struct Spell {
-    // TODO these prob won't all be pub if I add a ::new
+pub struct SpellResult {
+    pub success: bool,
+}
+
+#[derive(Debug)]
+//pub struct Spell<T: HasAttributes, S: SpellTarget<T>> {
+pub struct Spell<T:HasAttributes> {
     pub name: &'static str,
     pub force: i32,
     pub drain_level: DamageLevel,
     pub drain_modifier: i32,
     // These are just informational:
     pub spell_type: SpellType,
-    pub target: Attribute,
     pub duration: Duration,
+    pub target: SpellTarget<T>,
 }
