@@ -20,7 +20,7 @@ pub struct SpellResult {
 
 #[derive(Debug)]
 //pub struct Spell<T: HasAttributes, S: SpellTarget<T>> {
-pub struct Spell<T:HasAttributes> {
+pub struct Spell<S: SpellTarget> {
     pub name: &'static str,
     pub force: i32,
     pub drain_level: DamageLevel,
@@ -28,5 +28,5 @@ pub struct Spell<T:HasAttributes> {
     // These are just informational:
     pub spell_type: SpellType,
     pub duration: Duration,
-    pub target: SpellTarget<T>,
+    pub target: S,
 }

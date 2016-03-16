@@ -141,17 +141,16 @@ impl Character {
 }
 
 impl HasAttributes for Character {
-    pub fn attr(&self, attribute:Attribute) -> i32 {
+     fn attr(&self, attribute:&Attribute) -> i32 {
         match attribute {
-            Willpower => self.willpower,
-            Intelligence => self.intelligence,
-            Body => self.body,
-            Quickness => self.quickness,
-            Strength => self.strength,
-            Charisma => self.charisma,
+            &Attribute::Willpower => self.willpower,
+            &Attribute::Intelligence => self.intelligence,
+            &Attribute::Body => self.body,
+            &Attribute::Quickness => self.quickness,
+            &Attribute::Strength => self.strength,
+            &Attribute::Charisma => self.charisma,
         }
     }
-
 }
 
 // tests

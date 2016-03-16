@@ -21,19 +21,19 @@ pub enum DamageLevel {
 // conjured things
 
 pub trait HasAttributes {
-    fn attr(&self, attribute:Attribute) -> i32;
+    fn attr(&self, attribute:&Attribute) -> i32;
 }
 
-pub trait SpellTarget<T:HasAttributes> {
-    fn to_target(&self, other: &T) -> i32;
+pub trait SpellTarget {
+    fn to_target<T: HasAttributes>(&self, other: &T) -> i32;
 }
 
-impl<T: HasAttributes> SpellTarget<T> for i32 {
-    fn to_target(&self, _:&T) -> i32 {*self}
+impl SpellTarget for i32 {
+    fn to_target<T: HasAttributes>(&self, _:&T) -> i32 {*self}
 }
 
-impl<T: HasAttributes> SpellTarget<T> for Attribute {
-    fn to_target(&self, t:&T) -> i32 {
+impl SpellTarget for Attribute {
+    fn to_target<T: HasAttributes>(&self, t:&T) -> i32 {
         t.attr(self)
     }
 }
