@@ -3,6 +3,7 @@ use dice;
 use dice::RollResult;
 use common::{Attribute, HasAttributes, SpellTarget};
 use magic::{Spell, SpellResult};
+use skills::{Skill, HasSkills};
 
 #[derive(Debug)]
 pub enum Race {
@@ -28,6 +29,7 @@ pub struct Character {
 
     stun_level: i32,
     phys_level: i32,
+    skills: Vec<Skill>,
 }
 
 pub enum Damage {
@@ -40,16 +42,17 @@ impl Character {
         Character {
             name: name,
             race: race,
-            body: 0,
-            intelligence: 0,
-            strength: 0,
-            charisma: 0,
-            willpower: 0,
-            quickness: 0,
+            body: 1,
+            intelligence: 2,
+            strength: 3,
+            charisma: 4,
+            willpower: 5,
+            quickness: 6,
             magic: 6,
 
             phys_level: 0,
             stun_level: 0,
+            skills: vec![Skill::new("sorcery")],
         }
     }
 
@@ -153,7 +156,34 @@ impl HasAttributes for Character {
     }
 }
 
+impl HasSkills for Character {
+    fn skill(&self, name:&'static str) -> Option<&Skill> {
+        for skill in &self.skills {
+            if name == skill.name {
+                return Some(skill)
+            }
+        }
+        None
+    }
+
+    fn learn_skill(&mut self, skill:Skill) -> &mut Self {
+        // TODO check if skill already there
+        self.skills.push(skill);
+        self
+    }
+}
+
 // tests
+
+#[test]
+fn test_attrs() {
+    // TODO
+}
+
+#[test]
+fn test_skills() {
+    // TODO
+}
 
 #[test]
 fn test_reaction() {

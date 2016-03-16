@@ -2,6 +2,7 @@ mod dice;
 mod character;
 mod common;
 mod magic;
+mod skills;
 
 use common::{Attribute, DamageLevel};
 use character::{Character, Race};

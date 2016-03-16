@@ -17,9 +17,6 @@ pub enum DamageLevel {
     Variable,
 }
 
-// TODO consider a HasAttribute trait for characters / physical objects /
-// conjured things
-
 pub trait HasAttributes {
     fn attr(&self, attribute:&Attribute) -> i32;
 }
