@@ -158,6 +158,7 @@ impl HasAttributes for Character {
 
 impl HasSkills for Character {
     fn skill(&self, name:&'static str) -> Option<&Skill> {
+        // TODO case insensitive
         for skill in &self.skills {
             if name == skill.name {
                 return Some(skill)
@@ -177,12 +178,33 @@ impl HasSkills for Character {
 
 #[test]
 fn test_attrs() {
-    // TODO
+    let mut c = Character::new("herb", Race::Elf);
+    c.quickness = 1;
+    c.body = 2;
+    c.willpower = 3;
+    c.intelligence = 4;
+    c.strength = 5;
+    c.charisma = 6;
+    assert_eq!(c.attr(&Attribute::Quickness), 1);
+    assert_eq!(c.attr(&Attribute::Body), 2);
+    assert_eq!(c.attr(&Attribute::Willpower), 3);
+    assert_eq!(c.attr(&Attribute::Intelligence), 4);
+    assert_eq!(c.attr(&Attribute::Strength), 5);
+    assert_eq!(c.attr(&Attribute::Charisma), 6);
 }
 
 #[test]
 fn test_skills() {
-    // TODO
+    let mut c = Character::new("sara", Race::Ork);
+    c.learn_skill(Skill::new("knitting"));
+    let s = c.skill("knitting").unwrap();
+    assert_eq!(s.name, "knitting");
+    assert_eq!(s.level, 1);
+
+    assert!(match c.skill("nope") {
+        None => true,
+        _ => false
+    })
 }
 
 #[test]

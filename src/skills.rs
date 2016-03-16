@@ -8,7 +8,7 @@ impl Skill {
     pub fn new(name: &'static str) -> Skill{
         Skill {
             name: name,
-            level: 0,
+            level: 1,
         }
     }
 
