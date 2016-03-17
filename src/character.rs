@@ -2,7 +2,7 @@ use std::cmp::max;
 use std::ascii::AsciiExt;
 use dice;
 use dice::RollResult;
-use common::{Attribute, HasAttributes, SpellTarget};
+use common::{Attribute, HasAttributes, SpellTarget, dmg_to_num};
 use magic::{Spell, SpellResult};
 use skills::{Skill, HasSkills};
 
@@ -99,18 +99,6 @@ impl Character {
         return dice::roll(die, tn);
     }
 
-    //fn spell_test<T: HasAttributes, S: SpellTarget<T>>
-    //    (&self, spell: Spell<T, S>)
-    //     -> RollResult
-    //{
-    //    // TODO basic fizzle test
-    //    RollResult {
-    //        success: false,
-    //        catastrophic_fail: false,
-    //        successes: 0,
-    //    }
-    //}
-
     //fn drain_test<T: HasAttributes, S: SpellTarget<T>>
     //    (&self, spell: Spell<T,S>) -> RollResult
     //{
@@ -133,15 +121,51 @@ impl Character {
     //    }
     //}
 
-    //pub fn cast<T: HasAttributes, S: SpellTarget<T>>
-    //    (&self, spell: Spell<T, S>) -> SpellResult
-    //{
-    //    // TODO Fizzle test
-    //    // TODO Drain test
-    //    SpellResult {
-    //        success: false,
-    //    }
-    //}
+    pub fn cast<S: SpellTarget> (&mut self, spell: Spell<S>) -> SpellResult
+    {
+        // TODO casting at less than max force
+        if let None = self.skill("sorcery") {
+            return SpellResult {
+                success: false,
+                successes: 0,
+                drain_result: None,
+            }
+        }
+        let tn = spell.target.to_target(self);
+        let num_die = self.skill("sorcery").unwrap().level;
+        let cast_roll = self.roll(num_die, tn);
+        if !cast_roll.success {
+            return SpellResult {
+                success: false,
+                successes: 0,
+                drain_result: None,
+            }
+        }
+
+        let num_die = self.attr(&Attribute::Willpower);
+        // not using self.roll since we ignore target modifiers for drain
+        let drain_roll = dice::roll(num_die, spell.force / 2);
+        if drain_roll.success {
+            return SpellResult {
+                success: true,
+                successes: cast_roll.successes,
+                drain_result: None,
+            }
+        }
+
+        // TODO lessen damage by a level per 2 successes
+        let damage_type = if spell.force > self.magic {
+            Damage::Physical
+        } else {
+            Damage::Stun
+        };
+        self.injure(damage_type, dmg_to_num(spell.drain_level));
+        SpellResult {
+            success: true,
+            successes: cast_roll.successes,
+            drain_result: Some(spell.drain_level),
+        }
+    }
 }
 
 impl HasAttributes for Character {

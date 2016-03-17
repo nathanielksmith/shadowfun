@@ -13,13 +13,15 @@ pub enum Duration {
     Permanent,
 }
 
+// TODO this should def extend RollResult
 #[derive(Debug)]
 pub struct SpellResult {
     pub success: bool,
+    pub successes: i32,
+    pub drain_result: Option<DamageLevel>,
 }
 
 #[derive(Debug)]
-//pub struct Spell<T: HasAttributes, S: SpellTarget<T>> {
 pub struct Spell<S: SpellTarget> {
     pub name: &'static str,
     pub force: i32,
