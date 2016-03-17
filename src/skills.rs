@@ -24,6 +24,6 @@ impl Skill {
 }
 
 pub trait HasSkills {
-    fn skill(&self, name:&'static str) -> Option<&Skill>;
-    fn learn_skill(&mut self, skill:Skill) -> &mut Self;
+    fn skill(&mut self, name:&'static str) -> Option<&Skill>;
+    fn learn_skill(&mut self, skill:Skill) -> ();
 }

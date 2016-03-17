@@ -1,4 +1,5 @@
 use std::cmp::max;
+use std::ascii::AsciiExt;
 use dice;
 use dice::RollResult;
 use common::{Attribute, HasAttributes, SpellTarget};
@@ -29,7 +30,7 @@ pub struct Character {
 
     stun_level: i32,
     phys_level: i32,
-    skills: Vec<Skill>,
+    pub skills: Vec<Skill>,
 }
 
 pub enum Damage {
@@ -52,7 +53,7 @@ impl Character {
 
             phys_level: 0,
             stun_level: 0,
-            skills: vec![Skill::new("sorcery")],
+            skills: vec![],
         }
     }
 
@@ -157,20 +158,20 @@ impl HasAttributes for Character {
 }
 
 impl HasSkills for Character {
-    fn skill(&self, name:&'static str) -> Option<&Skill> {
+    fn skill(&mut self, name:&'static str) -> Option<&Skill> {
         // TODO case insensitive
         for skill in &self.skills {
-            if name == skill.name {
+            if name.eq_ignore_ascii_case(skill.name) {
                 return Some(skill)
             }
         }
         None
     }
 
-    fn learn_skill(&mut self, skill:Skill) -> &mut Self {
-        // TODO check if skill already there
-        self.skills.push(skill);
-        self
+    fn learn_skill(&mut self, skill:Skill) -> () {
+        if let None = self.skill(skill.name) {
+            self.skills.push(skill);
+        }
     }
 }
 
@@ -196,10 +197,24 @@ fn test_attrs() {
 #[test]
 fn test_skills() {
     let mut c = Character::new("sara", Race::Ork);
+    assert_eq!(c.skills.len(), 0);
     c.learn_skill(Skill::new("knitting"));
-    let s = c.skill("knitting").unwrap();
-    assert_eq!(s.name, "knitting");
-    assert_eq!(s.level, 1);
+    {
+        let s = c.skill("knitting").unwrap();
+        assert_eq!(s.name, "knitting");
+        assert_eq!(s.level, 1);
+    }
+    assert_eq!(c.skills.len(), 1);
+
+    // ensure that a skill is learned only once:
+    c.learn_skill(Skill::new("knitting"));
+    assert_eq!(c.skills.len(), 1);
+
+    // ensure that skill lookup is not case sensitive
+    assert!(match c.skill("Knitting") {
+        Some(_) => true,
+        _ => false
+    });
 
     assert!(match c.skill("nope") {
         None => true,
