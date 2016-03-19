@@ -16,3 +16,7 @@ pub enum DamageLevel {
     Deadly,
     Variable,
 }
+
+pub trait HasAttrs {
+    fn attr(&self, attr:Attribute) -> i32;
+}

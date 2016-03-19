@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::cmp::max;
+use common::{HasAttrs, Attribute};
 use dice;
 use dice::RollResult;
 
@@ -129,55 +130,93 @@ impl Character {
     }
 }
 
+impl HasAttrs for Character {
+    fn attr(&self, attr:Attribute) -> i32 {
+        match attr {
+            Attribute::Body => self.body,
+            Attribute::Willpower => self.willpower,
+            Attribute::Strength => self.strength,
+            Attribute::Intelligence => self.intelligence,
+            Attribute::Quickness => self.quickness,
+            Attribute::Charisma => self.charisma,
+        }
+    }
+}
+
 // tests
 
-#[test]
-fn test_skills() {
-    let mut c = Character::new("acid", Race::Troll);
-    assert_eq!(c.skill("knitting"), 0);
-    c.learn_skill("knitting");
-    assert_eq!(c.skill("knitting"), 1);
-    c.improve_skill("knitting");
-    assert_eq!(c.skill("knitting"), 2);
-    c.improve_skill_by("knitting", 5);
-    assert_eq!(c.skill("knitting"), 7);
-    let result = c.skill_test("knitting", 0);
-    assert!(result.success);
-}
+#[cfg(test)]
+mod tests {
+    use character::{Race, Character, Damage};
+    use common::{HasAttrs, Attribute};
 
-#[test]
-fn test_reaction() {
-    let mut c = Character::new("juli", Race::Human);
-    c.quickness = 3;
-    c.intelligence = 1;
-    assert_eq!(c.reaction(), 2);
-    c.intelligence = 4;
-    assert_eq!(c.reaction(), 3)
-}
+    #[test]
+    fn test_attrs() {
+        let mut c = Character::new("flarf", Race::Dwarf);
+        c.body = 1;
+        c.willpower = 2;
+        c.strength = 3;
+        c.intelligence = 4;
+        c.quickness = 5;
+        c.charisma = 6;
 
-#[test]
-fn test_condition() {
-    let mut c = Character::new("hernando", Race::Elf);
-    assert_eq!(c.phys_level, 0);
-    assert_eq!(c.stun_level, 0);
-    c.injure(Damage::Stun, 1);
-    assert_eq!(c.phys_level, 0);
-    assert_eq!(c.stun_level, 1);
-    c.injure(Damage::Physical, 1);
-    assert_eq!(c.phys_level, 1);
-    assert_eq!(c.stun_level, 1);
-    c.injure(Damage::Stun, 11);
-    assert_eq!(c.phys_level, 3);
-    assert_eq!(c.stun_level, 10);
-}
+        assert_eq!(c.attr(Attribute::Body), 1);
+        assert_eq!(c.attr(Attribute::Willpower), 2);
+        assert_eq!(c.attr(Attribute::Strength), 3);
+        assert_eq!(c.attr(Attribute::Intelligence), 4);
+        assert_eq!(c.attr(Attribute::Quickness), 5);
+        assert_eq!(c.attr(Attribute::Charisma), 6);
+    }
 
-#[test]
-fn test_injury_mod() {
-    let mut c = Character::new("francine", Race::Dwarf);
-    c.injure(Damage::Stun, 1);
-    assert_eq!(c.injury_to_mod(), 1);
-    c.injure(Damage::Physical, 3);
-    assert_eq!(c.injury_to_mod(), 2);
-    c.injure(Damage::Stun, 6);
-    assert_eq!(c.injury_to_mod(), 3);
+    #[test]
+    fn test_skills() {
+        let mut c = Character::new("acid", Race::Troll);
+        assert_eq!(c.skill("knitting"), 0);
+        c.learn_skill("knitting");
+        assert_eq!(c.skill("knitting"), 1);
+        c.improve_skill("knitting");
+        assert_eq!(c.skill("knitting"), 2);
+        c.improve_skill_by("knitting", 5);
+        assert_eq!(c.skill("knitting"), 7);
+        let result = c.skill_test("knitting", 0);
+        assert!(result.success);
+    }
+
+    #[test]
+    fn test_reaction() {
+        let mut c = Character::new("juli", Race::Human);
+        c.quickness = 3;
+        c.intelligence = 1;
+        assert_eq!(c.reaction(), 2);
+        c.intelligence = 4;
+        assert_eq!(c.reaction(), 3)
+    }
+
+    #[test]
+    fn test_condition() {
+        let mut c = Character::new("hernando", Race::Elf);
+        assert_eq!(c.phys_level, 0);
+        assert_eq!(c.stun_level, 0);
+        c.injure(Damage::Stun, 1);
+        assert_eq!(c.phys_level, 0);
+        assert_eq!(c.stun_level, 1);
+        c.injure(Damage::Physical, 1);
+        assert_eq!(c.phys_level, 1);
+        assert_eq!(c.stun_level, 1);
+        c.injure(Damage::Stun, 11);
+        assert_eq!(c.phys_level, 3);
+        assert_eq!(c.stun_level, 10);
+    }
+
+    #[test]
+    fn test_injury_mod() {
+        let mut c = Character::new("francine", Race::Dwarf);
+        c.injure(Damage::Stun, 1);
+        assert_eq!(c.injury_to_mod(), 1);
+        c.injure(Damage::Physical, 3);
+        assert_eq!(c.injury_to_mod(), 2);
+        c.injure(Damage::Stun, 6);
+        assert_eq!(c.injury_to_mod(), 3);
+    }
+
 }
