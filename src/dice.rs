@@ -6,9 +6,9 @@ const VERBOSE_ROLL: bool = true;
 
 #[derive(Debug)]
 pub struct RollResult {
-    success: bool,
-    catastrophic_fail: bool,
-    successes: i32,
+    pub success: bool,
+    pub catastrophic_fail: bool,
+    pub successes: i32,
 }
 
 pub fn d6() -> i32 {

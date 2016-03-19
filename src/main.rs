@@ -28,17 +28,12 @@ fn main() {
     println!("char killed: {:?}", froz.injure(Physical, 7));
     println!("char roll: {:?}", froz.roll(4, 4));
 
-    println!("\n~~ * ~ * ~ * spell stuff * ~ * ~ * ~~");
-
+    println!("\n~~ * ~ * ~ * skill stuff * ~ * ~ * ~~");
     let mut jill = Character::new("jill", Race::Ork);
-    let manabolt = Spell {
-        name: "mana bolt",
-        force: 3,
-        spell_type: SpellType::Mana,
-        target: Attribute::Willpower,
-        duration: Duration::Instant,
-        // TODO support modifiers on the chosen level
-        drain_level: DamageLevel::Variable,
-        drain_modifier: 0,
-    };
+    jill.learn_skill("edged weapons");
+    jill.improve_skill_by("edged weapons", 5);
+    let roll = jill.skill_test("edged weapons", 4);
+    println!("Jill makes a test with edged weapons: {:?}", roll);
+
+    println!("\n~~ * ~ * ~ * spell stuff * ~ * ~ * ~~");
 }

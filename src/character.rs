@@ -1,6 +1,11 @@
+use std::collections::HashMap;
 use std::cmp::max;
 use dice;
 use dice::RollResult;
+
+pub type Skill = &'static str;
+pub type SkillLevel = i32;
+pub type TargetNumber = i32;
 
 #[derive(Debug)]
 pub enum Race {
@@ -22,6 +27,8 @@ pub struct Character {
     willpower: i32,
     quickness: i32,
 
+    skills: HashMap<Skill, SkillLevel>,
+
     stun_level: i32,
     phys_level: i32,
 }
@@ -32,6 +39,7 @@ pub enum Damage {
 }
 
 impl Character {
+    // TODO consider passing in a Roller. This can then be mocked out in tests.
     pub fn new(name: &'static str, race: Race) -> Character {
         Character {
             name: name,
@@ -43,9 +51,39 @@ impl Character {
             willpower: 0,
             quickness: 0,
 
+            skills: HashMap::new(),
+
             phys_level: 0,
             stun_level: 0,
         }
+    }
+
+    pub fn learn_skill(&mut self, skill: Skill) -> () {
+        self.skills.insert(skill, 1);
+    }
+
+    pub fn improve_skill(&mut self, skill: Skill) -> () {
+        match self.skills.get_mut(skill) {
+            Some(old_level) => *old_level += 1,
+            None => (),
+        }
+    }
+
+    pub fn improve_skill_by(&mut self, skill: Skill, amount: SkillLevel) -> () {
+        for _ in 0..amount {
+            self.improve_skill(skill)
+        };
+    }
+
+    pub fn skill(&self, skill: Skill) -> SkillLevel {
+        match self.skills.get(skill) {
+            Some(level) => *level,
+            None => 0,
+        }
+    }
+
+    pub fn skill_test(&self, skill: Skill, tn: TargetNumber) -> RollResult {
+        self.roll(self.skill(skill), tn)
     }
 
     pub fn reaction(&self) -> i32 {
@@ -82,7 +120,7 @@ impl Character {
         }
     }
 
-    pub fn roll(&self, die: i32, tn: i32) -> RollResult {
+    pub fn roll(&self, die: i32, tn: TargetNumber) -> RollResult {
         if self.phys_level > 10 || self.stun_level > 10 {
             println!("WARNING rolling for dead or unconscious character");
         }
@@ -92,6 +130,20 @@ impl Character {
 }
 
 // tests
+
+#[test]
+fn test_skills() {
+    let mut c = Character::new("acid", Race::Troll);
+    assert_eq!(c.skill("knitting"), 0);
+    c.learn_skill("knitting");
+    assert_eq!(c.skill("knitting"), 1);
+    c.improve_skill("knitting");
+    assert_eq!(c.skill("knitting"), 2);
+    c.improve_skill_by("knitting", 5);
+    assert_eq!(c.skill("knitting"), 7);
+    let result = c.skill_test("knitting", 0);
+    assert!(result.success);
+}
 
 #[test]
 fn test_reaction() {
