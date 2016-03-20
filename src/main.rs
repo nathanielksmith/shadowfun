@@ -4,9 +4,9 @@ mod common;
 mod magic;
 
 use common::{Attribute, DamageLevel};
+use common::DamageType::{Physical, Stun};
 use character::{Character, Race};
-use character::Damage::{Physical, Stun};
-use magic::{Spell, SpellType, Duration};
+use magic::{Spell};
 
 fn main() {
     println!("/ / / S H A D O W  F U N \\ \\ \\");

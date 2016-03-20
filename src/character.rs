@@ -1,12 +1,12 @@
 use std::collections::HashMap;
 use std::cmp::max;
-use common::{HasAttrs, Attribute};
+use common::{HasAttrs, Attribute, DamageType, TargetNumber};
 use dice;
 use dice::RollResult;
+use magic::{SpellName, ForceLevel};
 
 pub type Skill = &'static str;
 pub type SkillLevel = i32;
-pub type TargetNumber = i32;
 
 #[derive(Debug)]
 pub enum Race {
@@ -29,14 +29,10 @@ pub struct Character {
     quickness: i32,
 
     skills: HashMap<Skill, SkillLevel>,
+    spells: HashMap<SpellName, ForceLevel>,
 
     stun_level: i32,
     phys_level: i32,
-}
-
-pub enum Damage {
-    Stun,
-    Physical,
 }
 
 impl Character {
@@ -53,6 +49,7 @@ impl Character {
             quickness: 0,
 
             skills: HashMap::new(),
+            spells: HashMap::new(),
 
             phys_level: 0,
             stun_level: 0,
@@ -77,6 +74,7 @@ impl Character {
     }
 
     pub fn skill(&self, skill: Skill) -> SkillLevel {
+        // TODO case insensitive
         match self.skills.get(skill) {
             Some(level) => *level,
             None => 0,
@@ -87,13 +85,40 @@ impl Character {
         self.roll(self.skill(skill), tn)
     }
 
+    pub fn learn_spell(&mut self, spell_name:SpellName) -> () {
+        self.spells.insert(spell_name, 1);
+    }
+
+    pub fn improve_spell(&mut self, spell_name:SpellName) -> () {
+        match self.spells.get_mut(spell_name) {
+            Some(old_force) => *old_force += 1,
+            None => (),
+        }
+    }
+
+    pub fn improve_spell_by(&mut self, spell_name: SpellName, amount: ForceLevel)
+                            -> ()
+    {
+        for _ in 0..amount {
+            self.improve_spell(spell_name)
+        };
+    }
+
+    pub fn spell_force(&self, spell_name: SpellName) -> ForceLevel {
+        // TODO case insensitive
+        match self.spells.get(spell_name) {
+            Some(f) => *f,
+            None => 0
+        }
+    }
+
     pub fn reaction(&self) -> i32 {
         (self.intelligence + self.quickness) / 2
     }
 
-    pub fn injure(&mut self, kind: Damage, amount: i32) -> &Self {
+    pub fn injure(&mut self, kind: DamageType, amount: i32) -> &Self {
         match kind {
-            Damage::Stun => {
+            DamageType::Stun => {
                 if self.stun_level + amount >= 10 {
                     self.phys_level += amount - (10 - self.stun_level);
                     self.stun_level = 10;
@@ -102,7 +127,7 @@ impl Character {
                     self.stun_level += amount;
                 }
             },
-            Damage::Physical => {
+            DamageType::Physical => {
                 self.phys_level += amount;
                 if self.phys_level > 10 {
                     println!("WARNING: {} has died.", self.name);
@@ -147,8 +172,20 @@ impl HasAttrs for Character {
 
 #[cfg(test)]
 mod tests {
-    use character::{Race, Character, Damage};
-    use common::{HasAttrs, Attribute};
+    use character::{Race, Character};
+    use common::{HasAttrs, Attribute, DamageType};
+
+    #[test]
+    fn test_spell_learning() {
+        let mut c = Character::new("jak", Race::Elf);
+        assert_eq!(c.spell_force("manabolt"), 0);
+        c.learn_spell("manabolt");
+        assert_eq!(c.spell_force("manabolt"), 1);
+        c.improve_spell("manabolt");
+        assert_eq!(c.spell_force("manabolt"), 2);
+        c.improve_spell_by("manabolt", 4);
+        assert_eq!(c.spell_force("manabolt"), 6);
+    }
 
     #[test]
     fn test_attrs() {
@@ -197,13 +234,13 @@ mod tests {
         let mut c = Character::new("hernando", Race::Elf);
         assert_eq!(c.phys_level, 0);
         assert_eq!(c.stun_level, 0);
-        c.injure(Damage::Stun, 1);
+        c.injure(DamageType::Stun, 1);
         assert_eq!(c.phys_level, 0);
         assert_eq!(c.stun_level, 1);
-        c.injure(Damage::Physical, 1);
+        c.injure(DamageType::Physical, 1);
         assert_eq!(c.phys_level, 1);
         assert_eq!(c.stun_level, 1);
-        c.injure(Damage::Stun, 11);
+        c.injure(DamageType::Stun, 11);
         assert_eq!(c.phys_level, 3);
         assert_eq!(c.stun_level, 10);
     }
@@ -211,11 +248,11 @@ mod tests {
     #[test]
     fn test_injury_mod() {
         let mut c = Character::new("francine", Race::Dwarf);
-        c.injure(Damage::Stun, 1);
+        c.injure(DamageType::Stun, 1);
         assert_eq!(c.injury_to_mod(), 1);
-        c.injure(Damage::Physical, 3);
+        c.injure(DamageType::Physical, 3);
         assert_eq!(c.injury_to_mod(), 2);
-        c.injure(Damage::Stun, 6);
+        c.injure(DamageType::Stun, 6);
         assert_eq!(c.injury_to_mod(), 3);
     }
 

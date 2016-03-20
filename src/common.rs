@@ -1,3 +1,5 @@
+pub type TargetNumber = i32;
+
 #[derive(Debug)]
 pub enum Attribute {
     Willpower,
@@ -6,6 +8,12 @@ pub enum Attribute {
     Quickness,
     Strength,
     Charisma,
+}
+
+#[derive(Debug)]
+pub enum DamageType {
+    Stun,
+    Physical,
 }
 
 #[derive(Debug)]
