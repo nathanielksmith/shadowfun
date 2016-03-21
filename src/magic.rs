@@ -4,11 +4,11 @@ pub type SpellName = &'static str;
 pub type ForceLevel = i32;
 
 pub trait SpellTargetNumber {
-    fn to_tn<T:HasAttrs>(&self, &spell_target: &T) -> TargetNumber;
+    fn to_tn<T:HasAttrs>(&self, spell_target: &T) -> TargetNumber;
 }
 
 impl SpellTargetNumber for Attribute {
-    fn to_tn<T:HasAttrs>(&self, &spell_target:&T) -> TargetNumber {
+    fn to_tn<T:HasAttrs>(&self, spell_target:&T) -> TargetNumber {
         // TODO this seems dumb.
         match self {
             &Attribute::Willpower => spell_target.attr(Attribute::Willpower),
@@ -22,7 +22,7 @@ impl SpellTargetNumber for Attribute {
 }
 
 impl SpellTargetNumber for i32 {
-    fn to_tn<T:HasAttrs>(&self, &spell_target: &T) -> TargetNumber {
+    fn to_tn<T:HasAttrs>(&self, _: &T) -> TargetNumber {
         *self
     }
 }
