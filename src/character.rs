@@ -3,7 +3,7 @@ use std::cmp::max;
 use common::{HasAttrs, Attribute, DamageType, TargetNumber};
 use dice;
 use dice::RollResult;
-use magic::{SpellName, ForceLevel};
+use magic::{SpellName, ForceLevel, Spell, SpellTargetNumber};
 
 pub type Skill = &'static str;
 pub type SkillLevel = i32;
@@ -110,6 +110,14 @@ impl Character {
             Some(f) => *f,
             None => 0
         }
+    }
+
+    pub fn cast<T:SpellTargetNumber>(&mut self, spell: Spell<T>) -> RollResult {
+        let sorcery_test = self.skill_test("sorcery", spell.to_tn(self));
+        if !sorcery_test.success {
+            return sorcery_test;
+        }
+        sorcery_test
     }
 
     pub fn reaction(&self) -> i32 {

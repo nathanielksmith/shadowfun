@@ -1,14 +1,14 @@
-use common::{Attribute, DamageLevel, DamageType, TargetNumber, HasAttrs};
+use common::{Attribute, DamageLevel, TargetNumber, HasAttrs};
 
 pub type SpellName = &'static str;
 pub type ForceLevel = i32;
 
 pub trait SpellTargetNumber {
-    fn to_tn<T:HasAttrs>(&self, spell_target: T) -> TargetNumber;
+    fn to_tn<T:HasAttrs>(&self, &spell_target: &T) -> TargetNumber;
 }
 
 impl SpellTargetNumber for Attribute {
-    fn to_tn<T:HasAttrs>(&self, spell_target:T) -> TargetNumber {
+    fn to_tn<T:HasAttrs>(&self, &spell_target:&T) -> TargetNumber {
         // TODO this seems dumb.
         match self {
             &Attribute::Willpower => spell_target.attr(Attribute::Willpower),
@@ -22,7 +22,7 @@ impl SpellTargetNumber for Attribute {
 }
 
 impl SpellTargetNumber for i32 {
-    fn to_tn<T:HasAttrs>(&self, spell_target:T) -> TargetNumber {
+    fn to_tn<T:HasAttrs>(&self, &spell_target: &T) -> TargetNumber {
         *self
     }
 }
@@ -32,12 +32,20 @@ pub struct Spell<T: SpellTargetNumber> {
     pub name: &'static str,
     pub drain_level: DamageLevel,
     pub drain_modifier: i32,
-    pub damage_type: DamageType,
     pub target: T
 }
 
 impl<S> Spell<S> where S: SpellTargetNumber {
-    fn to_tn<T:HasAttrs>(&self, target: T) -> TargetNumber {
+    pub fn to_tn<T:HasAttrs>(&self, target: &T) -> TargetNumber {
         self.target.to_tn(target)
     }
 }
+
+//pub fn grimoire<T:SpellTargetNumber>(spell_name: SpellName) -> Spell<T> {
+//    return Spell::<T>> {
+//        name: "oxygenate",
+//        drain_level: DamageLevel::Light,
+//        drain_modifier: 2,
+//        target: 4,
+//    }
+//}
