@@ -36,4 +36,26 @@ fn main() {
     println!("Jill makes a test with edged weapons: {:?}", roll);
 
     println!("\n~~ * ~ * ~ * spell stuff * ~ * ~ * ~~");
+    let oxygenate = Spell {
+        name: "oxygenate",
+        drain_level: DamageLevel::Light,
+        drain_modifier: 2,
+        target: 4,
+    };
+
+    let confuse = Spell {
+        name: "confusion",
+        drain_level: DamageLevel::Serious,
+        drain_modifier: 0,
+        target: Attribute::Willpower,
+    };
+    jill.learn_spell("confuse");
+    jill.learn_skill("sorcery");
+    jill.improve_spell_by("confuse", 3);
+    jill.improve_skill_by("sorcery", 4);
+    jill.learn_spell("oxygenate");
+    jill.improve_spell_by("oxygenate", 2);
+
+    let oxy_sr = jill.cast(oxygenate);
+    println!("{:?}", oxy_sr);
 }
