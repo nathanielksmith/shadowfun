@@ -1,9 +1,11 @@
 use std::collections::HashMap;
 use std::cmp::max;
+use common;
 use common::{HasAttrs, Attribute, DamageType, TargetNumber};
 use dice;
 use dice::RollResult;
-use magic::{SpellName, ForceLevel, Spell, SpellTargetNumber};
+use magic;
+use magic::{SpellName, ForceLevel, Spell, SpellTargetNumber, SpellResult};
 
 pub type Skill = &'static str;
 pub type SkillLevel = i32;
@@ -25,8 +27,11 @@ pub struct Character {
     intelligence: i32,
     strength: i32,
     charisma: i32,
-    willpower: i32,
+    pub willpower: i32,
     quickness: i32,
+
+    // TODO Deal with essence
+    magic: i32,
 
     skills: HashMap<Skill, SkillLevel>,
     spells: HashMap<SpellName, ForceLevel>,
@@ -47,6 +52,7 @@ impl Character {
             charisma: 0,
             willpower: 0,
             quickness: 0,
+            magic: 6, // TODO assuming awakened
 
             skills: HashMap::new(),
             spells: HashMap::new(),
@@ -112,12 +118,36 @@ impl Character {
         }
     }
 
-    pub fn cast<T:SpellTargetNumber>(&mut self, spell: Spell<T>) -> RollResult {
+    // This is just for casting spells that aren't "at" someone/something
+    pub fn cast<T:SpellTargetNumber>(&mut self, spell: Spell<T>) -> SpellResult {
+        // Can't cast if character just doesn't know sorcery
+        if 0 == self.skill("sorcery") {
+            return SpellResult::new(false, 0, None);
+        }
         let sorcery_test = self.skill_test("sorcery", spell.to_tn(self));
         if !sorcery_test.success {
-            return sorcery_test;
+            return SpellResult::from_roll(sorcery_test, None);
         }
-        sorcery_test
+
+        // Drain
+        // doing a raw dice roll since drain doesn't take any modifiers into
+        // account
+        let num_die = self.attr(Attribute::Willpower);
+        let force = self.spell_force(spell.name);
+        let drain_roll = dice::roll(num_die, spell.drain_modifier + (force / 2));
+        if drain_roll.success {
+            return SpellResult::from_roll(sorcery_test, None);
+        }
+
+        // TODO lessen damage by a level per 2 successes
+        let damage_type = if force > self.magic {
+            DamageType::Physical
+        } else {
+            DamageType::Stun
+        };
+        self.injure(damage_type, common::dmg_to_num(spell.drain_level));
+
+        SpellResult::from_roll(sorcery_test, Some(spell.drain_level))
     }
 
     pub fn reaction(&self) -> i32 {

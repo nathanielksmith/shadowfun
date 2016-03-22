@@ -1,4 +1,5 @@
 use common::{Attribute, DamageLevel, TargetNumber, HasAttrs};
+use dice::RollResult;
 
 pub type SpellName = &'static str;
 pub type ForceLevel = i32;
@@ -38,6 +39,36 @@ pub struct Spell<T: SpellTargetNumber> {
 impl<S> Spell<S> where S: SpellTargetNumber {
     pub fn to_tn<T:HasAttrs>(&self, target: &T) -> TargetNumber {
         self.target.to_tn(target)
+    }
+}
+
+#[derive(Debug)]
+pub struct SpellResult {
+    success: bool,
+    successes: i32,
+    drain_result: Option<DamageLevel>,
+}
+
+impl SpellResult {
+    pub fn new
+        (success: bool, successes: i32, drain_damage: Option<DamageLevel>)
+         -> Self
+    {
+        SpellResult {
+            success: success,
+            successes: successes,
+            drain_result: drain_damage,
+        }
+    }
+    pub fn from_roll
+        (roll: RollResult, drain_damage: Option<DamageLevel>)
+         -> Self
+    {
+        SpellResult {
+            success: roll.success,
+            successes: roll.successes,
+            drain_result: drain_damage,
+        }
     }
 }
 

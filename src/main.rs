@@ -49,6 +49,7 @@ fn main() {
         drain_modifier: 0,
         target: Attribute::Willpower,
     };
+    jill.willpower = 3;
     jill.learn_spell("confuse");
     jill.learn_skill("sorcery");
     jill.improve_spell_by("confuse", 3);
@@ -56,6 +57,7 @@ fn main() {
     jill.learn_spell("oxygenate");
     jill.improve_spell_by("oxygenate", 2);
 
+    println!("jill is casting oxygenate");
     let oxy_sr = jill.cast(oxygenate);
-    println!("{:?}", oxy_sr);
+    println!("\t{:?}", oxy_sr);
 }
