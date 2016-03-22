@@ -44,7 +44,7 @@ fn main() {
     };
 
     let confuse = Spell {
-        name: "confusion",
+        name: "confuse",
         drain_level: DamageLevel::Serious,
         drain_modifier: 0,
         target: Attribute::Willpower,
@@ -52,7 +52,7 @@ fn main() {
     jill.willpower = 3;
     jill.learn_spell("confuse");
     jill.learn_skill("sorcery");
-    jill.improve_spell_by("confuse", 3);
+    jill.improve_spell_by("confuse", 5);
     jill.improve_skill_by("sorcery", 4);
     jill.learn_spell("oxygenate");
     jill.improve_spell_by("oxygenate", 2);
@@ -60,4 +60,17 @@ fn main() {
     println!("jill is casting oxygenate");
     let oxy_sr = jill.cast(oxygenate);
     println!("\t{:?}", oxy_sr);
+
+    let mut frank = Character::new("frank", Race::Elf);
+    frank.willpower = 4;
+    println!("jill is casting confuse at frank");
+    let conf_sr = jill.cast_at(confuse, &frank);
+    if conf_sr.success {
+        println!("jill succeeded at confusing frank");
+        if let Some(dl) = conf_sr.drain_result {
+            println!("jill suffered some {:?} drain from her spell :(", dl);
+        }
+    } else {
+        println!("frank resisted jill's confuse spell");
+    }
 }

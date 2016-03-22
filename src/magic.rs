@@ -44,9 +44,9 @@ impl<S> Spell<S> where S: SpellTargetNumber {
 
 #[derive(Debug)]
 pub struct SpellResult {
-    success: bool,
-    successes: i32,
-    drain_result: Option<DamageLevel>,
+    pub success: bool,
+    pub successes: i32,
+    pub drain_result: Option<DamageLevel>,
 }
 
 impl SpellResult {
@@ -71,12 +71,3 @@ impl SpellResult {
         }
     }
 }
-
-//pub fn grimoire<T:SpellTargetNumber>(spell_name: SpellName) -> Spell<T> {
-//    return Spell::<T>> {
-//        name: "oxygenate",
-//        drain_level: DamageLevel::Light,
-//        drain_modifier: 2,
-//        target: 4,
-//    }
-//}

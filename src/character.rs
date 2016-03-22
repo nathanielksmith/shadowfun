@@ -142,6 +142,7 @@ impl Character {
     }
 
     fn sorcery_test(&self, tn: TargetNumber) -> RollResult {
+        // TODO fail if character doesn't know spell
         // Can't cast if character just doesn't know sorcery, hardcode failure
         if 0 == self.skill("sorcery") {
             return RollResult {
