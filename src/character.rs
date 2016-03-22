@@ -150,6 +150,12 @@ impl Character {
         SpellResult::from_roll(sorcery_test, Some(spell.drain_level))
     }
 
+    pub fn cast_at<T,K>(&mut self, spell: Spell<T>, target: K) -> SpellResult
+        where T: SpellTargetNumber, K: HasAttrs
+    {
+        SpellResult::new(false, 0, None)
+    }
+
     pub fn reaction(&self) -> i32 {
         (self.intelligence + self.quickness) / 2
     }
