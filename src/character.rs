@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::cmp::max;
 use common;
-use common::{HasAttrs, Attribute, DamageType, TargetNumber};
+use common::{HasAttrs, Attribute, DamageType, DamageLevel, TargetNumber};
 use dice;
 use dice::RollResult;
 use magic;
@@ -118,25 +118,17 @@ impl Character {
         }
     }
 
-    // This is just for casting spells that aren't "at" someone/something
-    pub fn cast<T:SpellTargetNumber>(&mut self, spell: Spell<T>) -> SpellResult {
-        // Can't cast if character just doesn't know sorcery
-        if 0 == self.skill("sorcery") {
-            return SpellResult::new(false, 0, None);
-        }
-        let sorcery_test = self.skill_test("sorcery", spell.to_tn(self));
-        if !sorcery_test.success {
-            return SpellResult::from_roll(sorcery_test, None);
-        }
-
-        // Drain
+    fn calculate_drain<T:SpellTargetNumber>
+        (&mut self, spell: Spell<T>)
+         -> Option<DamageLevel>
+    {
         // doing a raw dice roll since drain doesn't take any modifiers into
         // account
         let num_die = self.attr(Attribute::Willpower);
         let force = self.spell_force(spell.name);
         let drain_roll = dice::roll(num_die, spell.drain_modifier + (force / 2));
         if drain_roll.success {
-            return SpellResult::from_roll(sorcery_test, None);
+            return None;
         }
 
         // TODO lessen damage by a level per 2 successes
@@ -146,14 +138,46 @@ impl Character {
             DamageType::Stun
         };
         self.injure(damage_type, common::dmg_to_num(spell.drain_level));
-
-        SpellResult::from_roll(sorcery_test, Some(spell.drain_level))
+        Some(spell.drain_level)
     }
 
-    pub fn cast_at<T,K>(&mut self, spell: Spell<T>, target: K) -> SpellResult
+    fn sorcery_test(&self, tn: TargetNumber) -> RollResult {
+        // Can't cast if character just doesn't know sorcery, hardcode failure
+        if 0 == self.skill("sorcery") {
+            return RollResult {
+                success: false,
+                successes: 0,
+                catastrophic_fail: false,
+            }
+        }
+        self.skill_test("sorcery", tn)
+    }
+
+    // This is just for casting spells that aren't "at" someone/something
+    pub fn cast<T:SpellTargetNumber>(&mut self, spell: Spell<T>) -> SpellResult {
+        let sorcery_test = self.sorcery_test(spell.to_tn(self));
+        if !sorcery_test.success {
+            return SpellResult::from_roll(sorcery_test, None);
+        }
+
+        // Drain
+        let damage = self.calculate_drain(spell);
+
+        SpellResult::from_roll(sorcery_test, damage)
+    }
+
+    pub fn cast_at<T,K>(&mut self, spell: Spell<T>, target: &K) -> SpellResult
         where T: SpellTargetNumber, K: HasAttrs
     {
-        SpellResult::new(false, 0, None)
+        let sorcery_test = self.sorcery_test(spell.to_tn(target));
+        if !sorcery_test.success {
+            return SpellResult::from_roll(sorcery_test, None);
+        }
+
+        // Drain
+        let damage = self.calculate_drain(spell);
+
+        SpellResult::from_roll(sorcery_test, damage)
     }
 
     pub fn reaction(&self) -> i32 {
