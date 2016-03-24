@@ -1,3 +1,7 @@
+extern crate getopts;
+
+use getopts::Options;
+use std::env;
 mod dice;
 mod character;
 mod common;
@@ -10,8 +14,41 @@ use character::{Character, Race};
 use magic::{Spell};
 
 fn main() {
-    println!("/ / / S H A D O W  F U N \\ \\ \\");
+    let args: Vec<String> = env::args().collect();
+    let program = args[0].clone();
 
+    let mut opts = Options::new();
+    opts.optflag("h", "help", "Show this usage message.");
+    opts.optflag("g", "go", "Enter the shadowfun console");
+    opts.optflag("d", "demo", "Run the demo");
+
+    println!("/ / / S H A D O W  F U N \\ \\ \\");
+    let matches = match opts.parse(&args[1..]) {
+        Ok(m) => {m},
+        Err(e) => { panic!(e.to_string()) }
+    };
+    if matches.opt_present("g") {
+        go();
+    } else if matches.opt_present("d") {
+        demo();
+    } else {
+        usage(&program, opts);
+    }
+}
+
+fn go() {
+    println!("runnin'");
+    // TODO prob put this in a module
+    // TODO loop
+    // TODO basic PoC commands
+    // TODO think about command processing
+}
+
+fn usage(program: &str, opts: Options) {
+    println!("{}", opts.usage(&format!("Usage: {} [options]", program)));
+}
+
+fn demo() {
     let roller = DefaultRoller::new(true);
 
     println!("d6: {}", roller.d6());

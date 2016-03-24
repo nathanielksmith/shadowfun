@@ -5,3 +5,4 @@ authors = ["nathaniel smith <nathanielksmith@gmail.com>"]
 
 [dependencies]
 rand = "0.3"
+getopts = "0.2"
