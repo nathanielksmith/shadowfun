@@ -63,6 +63,10 @@ impl<'a, S:Roller + 'a> Character<'a, S> {
         }
     }
 
+    pub fn set_roller(&mut self, roller: &'a S) -> () {
+        self.roller = roller
+    }
+
     pub fn learn_skill(&mut self, skill: Skill) -> () {
         self.skills.insert(skill, 1);
     }
@@ -142,9 +146,18 @@ impl<'a, S:Roller + 'a> Character<'a, S> {
         Some(spell.drain_level)
     }
 
-    fn sorcery_test(&self, tn: TargetNumber) -> RollResult {
-        // TODO fail if character doesn't know spell
-        // Can't cast if character just doesn't know sorcery, hardcode failure
+    fn sorcery_test<T:SpellTargetNumber>
+        (&self, spell: &Spell<T>, tn: TargetNumber)
+         -> RollResult
+    {
+        if 0 == self.spell_force(spell.name) {
+            return RollResult {
+                success: false,
+                successes: 0,
+                catastrophic_fail: false,
+            }
+        }
+
         if 0 == self.skill("sorcery") {
             return RollResult {
                 success: false,
@@ -155,9 +168,8 @@ impl<'a, S:Roller + 'a> Character<'a, S> {
         self.skill_test("sorcery", tn)
     }
 
-    // This is just for casting spells that aren't "at" someone/something
     pub fn cast<T:SpellTargetNumber>(&mut self, spell: &Spell<T>) -> SpellResult {
-        let sorcery_test = self.sorcery_test(spell.to_tn(self));
+        let sorcery_test = self.sorcery_test(spell, spell.to_tn(self));
         if !sorcery_test.success {
             return SpellResult::from_roll(sorcery_test, None);
         }
@@ -171,7 +183,7 @@ impl<'a, S:Roller + 'a> Character<'a, S> {
     pub fn cast_at<T,K>(&mut self, spell: &Spell<T>, target: &K) -> SpellResult
         where T: SpellTargetNumber, K: HasAttrs
     {
-        let sorcery_test = self.sorcery_test(spell.to_tn(target));
+        let sorcery_test = self.sorcery_test(spell, spell.to_tn(target));
         if !sorcery_test.success {
             return SpellResult::from_roll(sorcery_test, None);
         }
@@ -249,17 +261,28 @@ mod tests {
 
     struct DummyRoller {
         verbose: bool,
+        value: i32,
     }
 
     impl Roller for DummyRoller {
         fn verbose(&self) -> bool { self.verbose }
         fn new(verbose:bool) -> Self {
             DummyRoller {
-                verbose: verbose
+                verbose: verbose,
+                value: 5,
             }
         }
 
-        fn d6(&self) -> i32 { 3 }
+        fn d6(&self) -> i32 { self.value }
+    }
+
+    impl DummyRoller {
+        fn newv(verbose:bool, value:i32) -> Self {
+            DummyRoller {
+                verbose: verbose,
+                value: value,
+            }
+        }
     }
 
     #[test]
@@ -347,5 +370,94 @@ mod tests {
         assert_eq!(c.injury_to_mod(), 2);
         c.injure(DamageType::Stun, 6);
         assert_eq!(c.injury_to_mod(), 3);
+    }
+
+    #[test]
+    fn test_spell_casting() {
+        let roller = DummyRoller::new(false);
+        // Every d6 is going to come up 5
+        let mut c = Character::new("rose", Race::Human, &roller);
+
+        let oxygenate = Spell {
+            name: "oxygenate",
+            drain_level: DamageLevel::Light,
+            drain_modifier: 2,
+            target: 4,
+        };
+
+        // A character with no sorcery can't cast spells.
+        let sr = c.cast(&oxygenate);
+        assert_eq!(sr.success, false);
+        assert_eq!(sr.successes, 0);
+        assert!(match sr.drain_result {
+            None => true,
+            _ => false
+        });
+
+        c.learn_skill("sorcery");
+        c.improve_skill_by("sorcery", 2);
+        // A character who doesn't know a spell can't cast it.
+        let sr = c.cast(&oxygenate);
+        assert_eq!(sr.success, false);
+        assert_eq!(sr.successes, 0);
+        assert!(match sr.drain_result {
+            None => true,
+            _ => false
+        });
+
+        c.learn_spell("oxygenate");
+        c.improve_spell_by("oxygenate", 3);
+
+        // A character who knows sorcery and the spell should do fine.
+        // No drain since spell's force is too low.
+        c.willpower = 4;
+        let sr = c.cast(&oxygenate);
+        assert_eq!(sr.success, true);
+        assert_eq!(sr.successes, 3);
+        assert!(match sr.drain_result {
+            None => true,
+            _ => false
+        });
+
+        // Make oxygenate's force much higher to trigger drain.
+        c.improve_spell_by("oxygenate", 10);
+        let sr = c.cast(&oxygenate);
+        assert_eq!(sr.success, true);
+        assert_eq!(sr.successes, 3);
+        assert!(match sr.drain_result {
+            Some(DamageLevel::Light) => true,
+            _ => false
+        });
+    }
+
+    #[test]
+    fn test_spell_casting_at_target() {
+        let high_roller = DummyRoller::newv(false, 5);
+        let low_roller = DummyRoller::newv(false, 2);
+
+        let mut c = Character::new("rose", Race::Human, &high_roller);
+        c.willpower = 5;
+        c.learn_spell("confuse");
+        c.improve_spell_by("confuse", 4);
+        c.learn_skill("sorcery");
+        c.improve_spell_by("sorcery", 4);
+
+        let mut d = Character::new("drek", Race::Elf, &high_roller);
+        d.willpower = 4;
+
+
+        let confuse = Spell {
+            name: "confuse",
+            drain_level: DamageLevel::Serious,
+            drain_modifier: 0,
+            target: Attribute::Willpower,
+        };
+
+        let sr = c.cast_at(&confuse, &d);
+        assert!(sr.success);
+
+        c.set_roller(&low_roller);
+        let sr = c.cast_at(&confuse, &d);
+        assert!(!sr.success);
     }
 }
