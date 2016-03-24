@@ -3,8 +3,7 @@ use std::cmp::max;
 use common;
 use common::{HasAttrs, Attribute, DamageType, DamageLevel, TargetNumber};
 use dice;
-use dice::RollResult;
-use magic;
+use dice::{RollResult, DefaultRoller, Roller};
 use magic::{SpellName, ForceLevel, Spell, SpellTargetNumber, SpellResult};
 
 pub type Skill = &'static str;
@@ -20,7 +19,7 @@ pub enum Race {
 }
 
 #[derive(Debug)]
-pub struct Character {
+pub struct Character<'a, T:Roller + 'a> {
     name: &'static str,
     body: i32,
     race: Race,
@@ -38,11 +37,12 @@ pub struct Character {
 
     stun_level: i32,
     phys_level: i32,
+
+    roller: &'a T
 }
 
-impl Character {
-    // TODO consider passing in a Roller. This can then be mocked out in tests.
-    pub fn new(name: &'static str, race: Race) -> Character {
+impl<'a, S:Roller + 'a> Character<'a, S> {
+    pub fn new(name: &'static str, race: Race, roller: &'a S) -> Self {
         Character {
             name: name,
             race: race,
@@ -59,6 +59,7 @@ impl Character {
 
             phys_level: 0,
             stun_level: 0,
+            roller: roller,
         }
     }
 
@@ -126,7 +127,7 @@ impl Character {
         // account
         let num_die = self.attr(Attribute::Willpower);
         let force = self.spell_force(spell.name);
-        let drain_roll = dice::roll(num_die, spell.drain_modifier + (force / 2));
+        let drain_roll = self.roller.roll(num_die, spell.drain_modifier + (force / 2));
         if drain_roll.success {
             return None;
         }
@@ -220,11 +221,11 @@ impl Character {
             println!("WARNING rolling for dead or unconscious character");
         }
         let tn = self.injury_to_mod() + tn;
-        return dice::roll(die, tn);
+        return self.roller.roll(die, tn);
     }
 }
 
-impl HasAttrs for Character {
+impl<'a, T:Roller + 'a> HasAttrs for Character<'a, T> {
     fn attr(&self, attr:Attribute) -> i32 {
         match attr {
             Attribute::Body => self.body,
@@ -242,11 +243,28 @@ impl HasAttrs for Character {
 #[cfg(test)]
 mod tests {
     use character::{Race, Character};
+    use dice::{Roller};
     use common::{HasAttrs, Attribute, DamageType};
+
+    struct DummyRoller {
+        verbose: bool,
+    }
+
+    impl Roller for DummyRoller {
+        fn verbose(&self) -> bool { self.verbose }
+        fn new(verbose:bool) -> Self {
+            DummyRoller {
+                verbose: verbose
+            }
+        }
+
+        fn d6(&self) -> i32 { 3 }
+    }
 
     #[test]
     fn test_spell_learning() {
-        let mut c = Character::new("jak", Race::Elf);
+        let roller = DummyRoller::new(false);
+        let mut c = Character::new("jak", Race::Elf, &roller);
         assert_eq!(c.spell_force("manabolt"), 0);
         c.learn_spell("manabolt");
         assert_eq!(c.spell_force("manabolt"), 1);
@@ -258,7 +276,8 @@ mod tests {
 
     #[test]
     fn test_attrs() {
-        let mut c = Character::new("flarf", Race::Dwarf);
+        let roller = DummyRoller::new(false);
+        let mut c = Character::new("flarf", Race::Dwarf, &roller);
         c.body = 1;
         c.willpower = 2;
         c.strength = 3;
@@ -276,7 +295,8 @@ mod tests {
 
     #[test]
     fn test_skills() {
-        let mut c = Character::new("acid", Race::Troll);
+        let roller = DummyRoller::new(false);
+        let mut c = Character::new("acid", Race::Troll, &roller);
         assert_eq!(c.skill("knitting"), 0);
         c.learn_skill("knitting");
         assert_eq!(c.skill("knitting"), 1);
@@ -290,7 +310,8 @@ mod tests {
 
     #[test]
     fn test_reaction() {
-        let mut c = Character::new("juli", Race::Human);
+        let roller = DummyRoller::new(false);
+        let mut c = Character::new("juli", Race::Human, &roller);
         c.quickness = 3;
         c.intelligence = 1;
         assert_eq!(c.reaction(), 2);
@@ -300,7 +321,8 @@ mod tests {
 
     #[test]
     fn test_condition() {
-        let mut c = Character::new("hernando", Race::Elf);
+        let roller = DummyRoller::new(false);
+        let mut c = Character::new("hernando", Race::Elf, &roller);
         assert_eq!(c.phys_level, 0);
         assert_eq!(c.stun_level, 0);
         c.injure(DamageType::Stun, 1);
@@ -316,7 +338,8 @@ mod tests {
 
     #[test]
     fn test_injury_mod() {
-        let mut c = Character::new("francine", Race::Dwarf);
+        let roller = DummyRoller::new(false);
+        let mut c = Character::new("francine", Race::Dwarf, &roller);
         c.injure(DamageType::Stun, 1);
         assert_eq!(c.injury_to_mod(), 1);
         c.injure(DamageType::Physical, 3);
@@ -324,5 +347,4 @@ mod tests {
         c.injure(DamageType::Stun, 6);
         assert_eq!(c.injury_to_mod(), 3);
     }
-
 }
