@@ -42,7 +42,8 @@ pub struct Character<'a, T:Roller + 'a> {
 }
 
 impl<'a, S:Roller + 'a> Character<'a, S> {
-    pub fn new(name: &'static str, race: Race, roller: &'a S) -> Self {
+    pub fn new(name: &'static str, race: Race, roller: &'a S)
+               -> Character<'a, S> {
         Character {
             name: name,
             race: race,
@@ -120,7 +121,7 @@ impl<'a, S:Roller + 'a> Character<'a, S> {
     }
 
     fn calculate_drain<T:SpellTargetNumber>
-        (&mut self, spell: Spell<T>)
+        (&mut self, spell: &Spell<T>)
          -> Option<DamageLevel>
     {
         // doing a raw dice roll since drain doesn't take any modifiers into
@@ -156,7 +157,7 @@ impl<'a, S:Roller + 'a> Character<'a, S> {
     }
 
     // This is just for casting spells that aren't "at" someone/something
-    pub fn cast<T:SpellTargetNumber>(&mut self, spell: Spell<T>) -> SpellResult {
+    pub fn cast<T:SpellTargetNumber>(&mut self, spell: &Spell<T>) -> SpellResult {
         let sorcery_test = self.sorcery_test(spell.to_tn(self));
         if !sorcery_test.success {
             return SpellResult::from_roll(sorcery_test, None);
@@ -168,7 +169,7 @@ impl<'a, S:Roller + 'a> Character<'a, S> {
         SpellResult::from_roll(sorcery_test, damage)
     }
 
-    pub fn cast_at<T,K>(&mut self, spell: Spell<T>, target: &K) -> SpellResult
+    pub fn cast_at<T,K>(&mut self, spell: &Spell<T>, target: &K) -> SpellResult
         where T: SpellTargetNumber, K: HasAttrs
     {
         let sorcery_test = self.sorcery_test(spell.to_tn(target));

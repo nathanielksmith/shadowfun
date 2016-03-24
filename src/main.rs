@@ -61,13 +61,13 @@ fn main() {
     jill.improve_spell_by("oxygenate", 2);
 
     println!("jill is casting oxygenate");
-    let oxy_sr = jill.cast(oxygenate);
+    let oxy_sr = jill.cast(&oxygenate);
     println!("\t{:?}", oxy_sr);
 
     let mut frank = Character::new("frank", Race::Elf, &roller);
     frank.willpower = 4;
     println!("jill is casting confuse at frank");
-    let conf_sr = jill.cast_at(confuse, &frank);
+    let conf_sr = jill.cast_at(&confuse, &frank);
     if conf_sr.success {
         println!("jill succeeded at confusing frank");
         if let Some(dl) = conf_sr.drain_result {
