@@ -50,16 +50,6 @@ pub struct SpellResult {
 }
 
 impl SpellResult {
-    pub fn new
-        (success: bool, successes: i32, drain_damage: Option<DamageLevel>)
-         -> Self
-    {
-        SpellResult {
-            success: success,
-            successes: successes,
-            drain_result: drain_damage,
-        }
-    }
     pub fn from_roll
         (roll: RollResult, drain_damage: Option<DamageLevel>)
          -> Self

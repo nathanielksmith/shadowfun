@@ -2,8 +2,7 @@ use std::collections::HashMap;
 use std::cmp::max;
 use common;
 use common::{HasAttrs, Attribute, DamageType, DamageLevel, TargetNumber};
-use dice;
-use dice::{RollResult, DefaultRoller, Roller};
+use dice::{RollResult, Roller};
 use magic::{SpellName, ForceLevel, Spell, SpellTargetNumber, SpellResult};
 
 pub type Skill = &'static str;
@@ -245,7 +244,8 @@ impl<'a, T:Roller + 'a> HasAttrs for Character<'a, T> {
 mod tests {
     use character::{Race, Character};
     use dice::{Roller};
-    use common::{HasAttrs, Attribute, DamageType};
+    use common::{HasAttrs, Attribute, DamageType, DamageLevel};
+    use magic::Spell;
 
     struct DummyRoller {
         verbose: bool,
