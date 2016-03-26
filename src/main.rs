@@ -1,7 +1,8 @@
 extern crate getopts;
 
 use getopts::Options;
-use std::env;
+use std::{env, io};
+use std::io::Write;
 mod dice;
 mod character;
 mod common;
@@ -36,10 +37,29 @@ fn main() {
     }
 }
 
+fn handle_input(input: &mut String) -> () {
+    println!("called with {}", input);
+}
+
 fn go() {
     println!("runnin'");
+    let mut input = String::new();
+    loop {
+        print!("> ");
+        io::stdout().flush();
+        match io::stdin().read_line(&mut input) {
+            Ok(_) => if input == "quit\n" {
+                break;
+            } else {
+                handle_input(&mut input);
+            },
+            Err(e) => {
+                println!("error: {}", e);
+                break;
+            }
+        }
+    }
     // TODO prob put this in a module
-    // TODO loop
     // TODO basic PoC commands
     // TODO think about command processing
 }
